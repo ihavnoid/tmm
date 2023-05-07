@@ -5,8 +5,28 @@ let editor;
 let last_timestamp = 0;
 let rwkey = null;
 
-// import h2t from "node_modules/html-to-text/";
+let popupWindow = window;
 
+function callbackFromPane(w) {
+    popupWindow = w;
+    updateChildWindow();
+}
+
+function getWindow() {
+    if(popupWindow && popupWindow.closed) {
+        popupWindow = window;
+    }
+    return popupWindow;
+}
+function openPopup() {
+    let w = window.open("edit_popup.html", "floatpane", "popup")
+    let poll_window_exist = () => {
+        if(getWindow() != window) {
+            setTimeout(poll_window_exist, 500);
+        }
+    }
+    setTimeout(poll_window_exist, 500);
+}
 
 function addVisitedPages() {
     let setting;
@@ -37,6 +57,13 @@ function setSize() {
     } );
 }
 
+function updateChildWindow() {
+    let d = html_to_text.convert(editor.getData());
+    if(getWindow() != window) {
+        getWindow().msgpane.innerHTML = "<pre>" + d + "</pre>";
+    }
+}
+
 function createEditor() {
     ClassicEditor
         .create( document.querySelector('#editor'), {
@@ -46,6 +73,7 @@ function createEditor() {
             },
             autosave: {
                 save(editor) {
+                    updateChildWindow();
                     return new Promise(function(resolve, reject) {
                         let xhr = new XMLHttpRequest();
                         let data = editor.getData();
