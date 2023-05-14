@@ -5,6 +5,8 @@ let editor;
 let last_timestamp = 0;
 let rwkey = null;
 
+let ai_table = new Map();
+
 let popupWindow = window;
 
 function callbackFromPane(w) {
@@ -48,7 +50,17 @@ function addVisitedPages() {
     // console.log(setting);
 }
 
+function getNextAINum() {
+    return 0;
+}
 
+function timeFormat () {
+    let date = new Date();
+    return (new Intl.DateTimeFormat("en", {year: "numeric", hour12: false}).format(date))
+            + "/" + (new Intl.DateTimeFormat("en", {month: "2-digit", day: "2-digit"}).format(date))
+            + " " + (new Intl.DateTimeFormat("en", {hour: "2-digit", minute: "2-digit", hour12: false}).format(date))
+    ;
+};
 // I don't like ckedit being picky on how to control height..
 function setSize() {
     let height = window.innerHeight;
@@ -58,13 +70,46 @@ function setSize() {
 }
 
 function updateChildWindow() {
-    let d = html_to_text.convert(editor.getData());
+    let d = html_to_text.convert(editor.getData(), {wordwrap:9999999});
     if(getWindow() != window) {
         getWindow().msgpane.innerHTML = "<pre>" + d + "</pre>";
     }
+
+    ai_table = new Map();
+    let lines = d.split('\n');
+    let date = timeFormat();
+
+    function addAI(number, state, owner, comment) {
+    }
+
+    lines.forEach(ln => {
+        let m = ln.match(/!!date\s*(.*)$/);
+        if(m) {
+            console.log("date", m[1]);
+            date = m[1];
+        }
+
+        let m2 = ln.match(/!!ai\s*\(([^|]*)\|([^|]*)\|([^|]*)\)(.*)$/);
+        if(m2) {
+            console.log("ai", m2);
+            addAI(m2[1], m2[2], m2[3], m2[4]);
+        }
+
+        m2 = ln.match(/!!ai\s*\(([^|]*)\|([^|]*)\)(.*)$/);
+        if(m2) {
+            console.log("ai", m2);
+            addAI(m2[1], m2[2], "", m2[3]);
+        }
+        m2 = ln.match(/!!ai\s*\(([^|]*)\)(.*)$/);
+        if(m2) {
+            console.log("ai", m2);
+            addAI(m2[1], "", "", m2[3]);
+        }
+    });
 }
 
 function createEditor() {
+
     ClassicEditor
         .create( document.querySelector('#editor'), {
             simpleUpload: {
@@ -101,6 +146,20 @@ function createEditor() {
                             xhr.send(data);
                         }
                     });
+                }
+            },
+            typing: {
+                transformations: {
+                    extra: [
+                        {
+                            from: /^(!!date\s+)(##)$/,
+                            to: [null, timeFormat()],
+                        },
+                        {
+                            from: /(!!ai\s*\()(#)(\|?[^|]*\|?[^|]*\))$/,
+                            to: [null, new String(getNextAINum()), null],
+                        }
+                    ],
                 }
             }
         })
