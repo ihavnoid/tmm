@@ -110,7 +110,7 @@ function rebuildAiTable(currentDateString) {
         m2 = ln.match(/!!ai\s*\(([0-9]*)\)(.*)$/);
         if(m2) {
             console.log("ai", m2);
-            addAI(m2[1], "", "", m2[3]);
+            addAI(m2[1], "", "", m2[2]);
         }
     });
     ai_table.sort( (a, b) => {
@@ -167,15 +167,43 @@ function buildAiTableHtml() {
     let ret = "<table>";
     ret += "<tr><td>#</td><td>state</td><td>owner</td><td>description</td></tr>";
     let prev_num = null;
+    let last_state = "";
+    let last_owner = "";
+    let last_comment = "";
+    function emit_cell_content() {
+        if(last_state == "") last_state = "open";
+        ret += "<tr><td>" + prev_num + "</td><td>" + last_state + "</td><td>" + last_owner + "</td><td>" + last_comment + "</td></tr>";
+    }
     for(let ln of aitable) {
         let ln_date = ln["date"].split(" ")[0];
         let ln_num = ln["number"];
         if(ln_num == prev_num) {
             ln_num = "";
+            if(ln["state"] != "") {
+                last_state = ln["state"];
+            }
+            if(ln["owner"] != "") {
+                last_owner = ln["owner"];
+            }
+            last_comment += "(" +ln_date + ") " + ln["comment"] + "<br/>";
         } else {
+            if(prev_num != null) {
+                emit_cell_content(); 
+            }
             prev_num = ln_num;
+            last_state = "";
+            last_owner = "";
+            if(ln["state"] != "") {
+                last_state = ln["state"];
+            }
+            if(ln["owner"] != "") {
+                last_owner = ln["owner"];
+            }
+            last_comment = "(" +ln_date + ") " + ln["comment"] + "<br/>";
         }
-        ret += "<tr><td>" + ln_num + "</td><td>" + ln["state"] + "</td><td>" + ln["owner"] + "</td><td>(" + ln_date + ") " + ln["comment"] +"</td></tr>";
+    }
+    if(prev_num != null) {
+        emit_cell_content(); 
     }
     ret += "</table>";
 
