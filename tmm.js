@@ -215,6 +215,19 @@ function buildAiTableHtml() {
     return "";
 }
 
+function forceTriggerUpdate() {
+    // the only purpose of this setData() is to trigger a autosave when title changed.
+    let d = editor.getData();
+    let d2 = d.replaceAll("<!-- Title -->", "");
+    if(d == d2) {
+        d += "<!-- Title -->";
+    } else {
+        d = d2;
+    }
+    editor.setData(d);
+    addVisitedPages();
+}
+
 function createEditor() {
     ClassicEditor
         .create( document.querySelector('#editor'), {
@@ -281,18 +294,39 @@ function createEditor() {
         .catch( error => { console.error(error); } );
 
     document.getElementById("title").addEventListener("input", (ev) => {
-        // the only purpose of this setData() is to trigger a autosave when title changed.
-        let d = editor.getData();
-        let d2 = d.replaceAll("<!-- Title -->", "");
-        if(d == d2) {
-            d += "<!-- Title -->";
-        } else {
-            d = d2;
-        }
-        editor.setData(d);
-        addVisitedPages();
+        forceTriggerUpdate();
     });
     addVisitedPages();
+}
+
+function clonePage() {
+    let xhr = new XMLHttpRequest();
+    let title = document.getElementById("title").value;
+
+    xhr.open('GET', __serverBase__ + "/p/n.php");
+    xhr.onload = (resp) => {
+        if(xhr.status == 200) {
+            let t = xhr.response;
+            t = JSON.parse(t);
+            console.log("createRwKey", "resp", t);
+            rwkey = t["rwkey"];
+            document.getElementById("rwkey").innerHTML = rwkey.substr(0,8) + "<a href=\"" + __serverBase__ + "?k=" + rwkey + "\">Edit link</a>";
+            seq = t["seq"];
+            sessionStorage.setItem(__prefix__ + "documentTitle", JSON.stringify(rwkey));
+            last_timestamp = 0;
+
+            // trigger a auto-update
+            forceTriggerUpdate();
+        } else {
+            // try again after 500ms
+            setTimeout(clonePage, __retry_period__);
+        }
+    };
+    xhr.onerror = (resp) => {
+        // try again after 500ms
+        setTimeout(clonePage, __retry_period__);
+    };
+    xhr.send();
 }
 
 function onload() {
@@ -305,7 +339,7 @@ function onload() {
                 t = JSON.parse(t);
                 console.log("createRwKey", "resp", t);
                 rwkey = t["rwkey"];
-                document.getElementById("rwkey").innerHTML = "<a href=\"" + __serverBase__ + "?k=" + rwkey + "\">Edit link</a>";
+                document.getElementById("rwkey").innerHTML = rwkey.substr(0,8) + "<a href=\"" + __serverBase__ + "?k=" + rwkey + "\">Edit link</a>";
                 seq = t["seq"];
                 sessionStorage.setItem(__prefix__ + "documentTitle", JSON.stringify(rwkey));
                 last_timestamp = 0;
@@ -344,7 +378,7 @@ function onload() {
                     let contents = t["contents"].replaceAll("\r\n", "\n");
                     document.getElementById("editor").innerHTML = contents;
                     document.getElementById("title").value = title;
-                    document.getElementById("rwkey").innerHTML = "<a href=\"" + __serverBase__ + "?k=" + rwkey + "\">Edit link</a>";
+                    document.getElementById("rwkey").innerHTML = rwkey.substr(0,8) + "<a href=\"" + __serverBase__ + "?k=" + rwkey + "\">Edit link</a>";
                     createEditor();
                 } else if(ts == 0) {
                     console.log(t);

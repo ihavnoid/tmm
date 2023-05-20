@@ -35,6 +35,9 @@
     #newdoc {
         margin: 10px;
     }
+    #clonepage {
+        margin: 10px;
+    }
     #visited {
         margin: 10px;
     }
@@ -49,6 +52,7 @@
 <div>
     Document title : <input type="text" id="title" placeholder="(Please put document title here)" size=50></input>
     <span id="newdoc"><a href="javascript:newDocument()">New</a></span>
+    <span id="clonepage"><a href="javascript:clonePage()">Clone</a></span>
     <span id="visited"><a href="visited.php" target="_blank">Show pages visited</a></span>
     <span id="rwkey"></span>
     <span id="summary"><a href="javascript:openPopup()">Show summary pages</a></span>
