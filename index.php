@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <?php
+    $config = json_decode(file_get_contents(__DIR__."/config.json"), true);
     if(array_key_exists("k", $_GET)) {
         // addslashes shouldn't be useful here, but this is to block code injection type thingies
         $k = addslashes($_GET["k"]);
@@ -10,7 +11,7 @@
     <script src="tmm.js"></script>
     <script>
         sessionStorage.setItem(__prefix__ + "documentTitle", JSON.stringify("<?php echo $k; ?>"));
-        window.location.replace(__serverBase__);
+        window.location.replace("<?php echo $config["base_url"];?>");
     </script>
     </header>
 <body> &nbsp; </body>
@@ -18,12 +19,14 @@
 <?php
         exit(0);
     }
-
 ?>
 
 <html>
 <head>
 <meta charset="utf-8"/>
+<script>
+        __serverBase__ = "<?php echo $config["base_url"];?>";
+</script>
 <script src="ckeditor.js"></script>
 <script src="html_to_text.js"></script>
 <script src="tmm.js"></script>

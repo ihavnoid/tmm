@@ -32,7 +32,7 @@ function build_table() {
         let setting = JSON.parse(localStorage.getItem(prefix + "visitedPages"));
 
         //t += "<table><tr><th width=\"700\">Title</th><th>Read-only link</th><th>Read-write link</th><th>&nbsp;</th></tr>";
-        t += "<table><tr><th width=\"700\">Title</th><th>Read-write link</th><th>&nbsp;</th></tr>";
+        t += "<table><tr><th width=\"700\">Title</th><th>Link</th><th>Last date</th><th>&nbsp;</th></tr>";
         t2 = "";
         for(let p in setting) {
             if(setting.hasOwnProperty(p)) {
@@ -40,7 +40,12 @@ function build_table() {
                 t2 += "<tr><td>"+o["title"]+"</td>";
                 // t2 += "<td><a href=\"<?php echo $base?>?k=" + o["rokey"] + "\" target=\"_blank\">Read-only</a></td>";
                 if(o.hasOwnProperty("rwkey")) {
-                    t2 += "<td><a href=\"<?php echo $base?>?k=" + o["rwkey"] + "\" target=\"_blank\">Read-write</a></td>";
+                    t2 += "<td><a href=\"<?php echo $base?>?k=" + o["rwkey"] + "\" target=\"_blank\">Link</a></td>";
+                } else {
+                    t2 += "<td> &nbsp; </td>";
+                }
+                if(o.hasOwnProperty("updated")) {
+                    t2 += "<td>" + o["updated"] + "</td>";
                 } else {
                     t2 += "<td> &nbsp; </td>";
                 }

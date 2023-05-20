@@ -1,6 +1,6 @@
-__serverBase__ = "http://192.168.233.234/tmm/";
 __prefix__ = "tmm_edit_";
 __retry_period__ = 500;
+
 let editor = null;
 let last_timestamp = 0;
 let rwkey = null;
@@ -47,9 +47,11 @@ function addVisitedPages() {
     if(seq >= 100000000) {
         d["title"] += "(read-only)";
     }
+    let u = findLastDate();
+    if(u != "") d["updated"] = u;
+    console.log(d);
     setting[rwkey] = d;
     localStorage.setItem(__prefix__ + "visitedPages", JSON.stringify(setting));
-    // console.log(setting);
 }
 
 
@@ -67,6 +69,28 @@ function setSize() {
         writer.setStyle( 'height', ""+(height-200) + "px", editor.editing.view.document.getRoot() );
     } );
 }
+
+
+function findLastDate() {
+    if(editor == null) {
+        return "";
+    }
+    let d = html_to_text.convert(editor.getData(), {wordwrap:9999999});
+    let lines = d.split('\n');
+    let date = "";
+    let lncnt = 0;
+
+    lines.forEach(ln => {
+        lncnt++;
+        let m = ln.match(/!!date\s*(.*)$/);
+        if(m) {
+            console.log("date", m[1]);
+            if(date < m[1]) date = m[1];
+        }
+    });
+    return date;
+}
+
 
 function rebuildAiTable(currentDateString) {
     if(editor == null) {
@@ -229,7 +253,6 @@ function forceTriggerUpdate(cb) {
         d = d2;
     }
     editor.setData(d);
-    addVisitedPages();
     if(cb) {
         updateCallback.push(cb);
     }
@@ -245,6 +268,7 @@ function createEditor() {
             autosave: {
                 save(editor) {
                     updateChildWindow();
+                    addVisitedPages();
                     return new Promise(function(resolve, reject) {
                         let xhr = new XMLHttpRequest();
                         let data = editor.getData();
