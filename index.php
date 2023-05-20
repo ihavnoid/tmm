@@ -53,9 +53,10 @@
     Document title : <input type="text" id="title" placeholder="(Please put document title here)" size=50></input>
     <span id="newdoc"><a href="javascript:newDocument()">New</a></span>
     <span id="clonepage"><a href="javascript:clonePage()">Clone</a></span>
+    <span id="change to read-only"><a href="javascript:changeToReadOnly()">Change to read-only</a></span>
     <span id="visited"><a href="visited.php" target="_blank">Show pages visited</a></span>
     <span id="rwkey"></span>
-    <span id="summary"><a href="javascript:openPopup()">Show summary pages</a></span>
+    <!-- <span id="summary"><a href="javascript:openPopup()">Show summary pages</a></span> -->
 </div>
 
 <div id="editor"></div>

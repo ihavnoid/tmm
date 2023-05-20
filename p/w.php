@@ -19,7 +19,15 @@
     list($v1,$v2) = key2val(substr($key, 0, 32));
     list($v3,$v4) = key2val(substr($key, 32));
 	
-    if($seq > 0) {
+    if($seq >= 200000000) {
+        // dummy statement, shouldn't touch unless somebody maliciously tries to do something
+    	$stmt = $db->prepare("update contents set contents=?, title=?, ts=?, seq=seq+1 where roid0 = ? and roid1 = ? and rwid0 = ? and rwid1 = ? and seq = 0");
+    }
+    else if($seq >= 100000000) {
+    	$stmt = $db->prepare("update contents set contents=?, title=?, ts=?, seq=100000000 where roid0 = ? and roid1 = ? and rwid0 = ? and rwid1 = ? and seq = ?");
+    	$stmt->bindValue(8, $seq-100000000, SQLITE3_INTEGER);
+    }
+    else if($seq > 0) {
     	$stmt = $db->prepare("update contents set contents=?, title=?, ts=?, seq=seq+1 where roid0 = ? and roid1 = ? and rwid0 = ? and rwid1 = ? and seq = ?");
     	$stmt->bindValue(8, $seq, SQLITE3_INTEGER);
     } else {

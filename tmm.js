@@ -6,6 +6,7 @@ let last_timestamp = 0;
 let rwkey = null;
 
 let popupWindow = window;
+let updateCallback = [];
 
 function callbackFromPane(w) {
     popupWindow = w;
@@ -43,6 +44,9 @@ function addVisitedPages() {
         d = setting[rwkey];
     }
     d["title"] = document.getElementById("title").value;
+    if(seq >= 100000000) {
+        d["title"] += "(read-only)";
+    }
     setting[rwkey] = d;
     localStorage.setItem(__prefix__ + "visitedPages", JSON.stringify(setting));
     // console.log(setting);
@@ -215,7 +219,7 @@ function buildAiTableHtml() {
     return "";
 }
 
-function forceTriggerUpdate() {
+function forceTriggerUpdate(cb) {
     // the only purpose of this setData() is to trigger a autosave when title changed.
     let d = editor.getData();
     let d2 = d.replaceAll("<!-- Title -->", "");
@@ -226,6 +230,9 @@ function forceTriggerUpdate() {
     }
     editor.setData(d);
     addVisitedPages();
+    if(cb) {
+        updateCallback.push(cb);
+    }
 }
 
 function createEditor() {
@@ -258,6 +265,10 @@ function createEditor() {
                                 if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
                                     seq += 1;
                                     resolve(xhr.response);
+                                    for(let cb of updateCallback) {
+                                        cb();
+                                    }
+                                    updateCallback = [];
                                 } else {
                                     reject({status: xhr.status, statusText : xhr.statusText});
                                 }
@@ -290,6 +301,14 @@ function createEditor() {
             editor = newEditor;
             setSize();
             window.addEventListener("resize", setSize);
+
+            if(seq >= 100000000) {
+                editor.enableReadOnlyMode("#editor");
+                document.getElementById("title").readOnly = true;
+            } else {
+                editor.disableReadOnlyMode("#editor");
+                document.getElementById("title").readOnly = false;
+            }
         } )
         .catch( error => { console.error(error); } );
 
@@ -310,13 +329,12 @@ function clonePage() {
             t = JSON.parse(t);
             console.log("createRwKey", "resp", t);
             rwkey = t["rwkey"];
-            document.getElementById("rwkey").innerHTML = rwkey.substr(0,8) + "<a href=\"" + __serverBase__ + "?k=" + rwkey + "\">Edit link</a>";
+            document.getElementById("rwkey").innerHTML = rwkey.substr(0,8) + " &nbsp; <a href=\"" + __serverBase__ + "?k=" + rwkey + "\">Edit link</a>";
             seq = t["seq"];
-            sessionStorage.setItem(__prefix__ + "documentTitle", JSON.stringify(rwkey));
-            last_timestamp = 0;
 
-            // trigger a auto-update
-            forceTriggerUpdate();
+            sessionStorage.setItem(__prefix__ + "documentTitle", JSON.stringify(rwkey));
+            editor.disableReadOnlyMode("#editor");
+            document.getElementById("title").readOnly = false;
         } else {
             // try again after 500ms
             setTimeout(clonePage, __retry_period__);
@@ -329,6 +347,10 @@ function clonePage() {
     xhr.send();
 }
 
+function changeToReadOnly() {
+    seq += 100000000;
+    forceTriggerUpdate();
+}
 function onload() {
     function initiateRWKey() {
         let xhr = new XMLHttpRequest();
@@ -339,7 +361,7 @@ function onload() {
                 t = JSON.parse(t);
                 console.log("createRwKey", "resp", t);
                 rwkey = t["rwkey"];
-                document.getElementById("rwkey").innerHTML = rwkey.substr(0,8) + "<a href=\"" + __serverBase__ + "?k=" + rwkey + "\">Edit link</a>";
+                document.getElementById("rwkey").innerHTML = rwkey.substr(0,8) + " &nbsp; <a href=\"" + __serverBase__ + "?k=" + rwkey + "\">Edit link</a>";
                 seq = t["seq"];
                 sessionStorage.setItem(__prefix__ + "documentTitle", JSON.stringify(rwkey));
                 last_timestamp = 0;
@@ -372,13 +394,13 @@ function onload() {
                 if(t["contents"]) {
                     rwkey = t["rwkey"];
                     let title = t["title"];
-                    seq = t["seq"];
+                    seq = 0 + t["seq"];
 
                     // HACK : some servers need this workaround
                     let contents = t["contents"].replaceAll("\r\n", "\n");
                     document.getElementById("editor").innerHTML = contents;
                     document.getElementById("title").value = title;
-                    document.getElementById("rwkey").innerHTML = rwkey.substr(0,8) + "<a href=\"" + __serverBase__ + "?k=" + rwkey + "\">Edit link</a>";
+                    document.getElementById("rwkey").innerHTML = rwkey.substr(0,8) + " &nbsp; <a href=\"" + __serverBase__ + "?k=" + rwkey + "\">Edit link</a>";
                     createEditor();
                 } else if(ts == 0) {
                     console.log(t);
