@@ -1,5 +1,7 @@
 __prefix__ = "tmm_edit_";
 __retry_period__ = 500;
+__default_table_states__ = ["open"];
+
 
 let editor = null;
 let last_timestamp = 0;
@@ -102,16 +104,17 @@ function rebuildAiTable(currentDateString) {
     let date = timeFormat();
     let lncnt = 0;
 
-    function addAI(number, state, owner, comment) {
+    function addAI(number, state, owner, description, comment) {
         // yes, I am intending to do lexicographical compares
         if(currentDateString == null || currentDateString >= date) {
             ai_table.push({
                 ln : lncnt,
-                date : date,
-                number : number,
-                state : state,
-                owner : owner,
-                comment : comment
+                date : date.trim(),
+                number : number.trim(),
+                state : state.trim(),
+                owner : owner.trim(),
+                description : description.trim(),
+                comment : comment.trim()
             });
         }
     }
@@ -127,18 +130,23 @@ function rebuildAiTable(currentDateString) {
         let m2 = ln.match(/!!ai\s*\(([0-9]*)\|([^|]*)\|([^|]*)\)(.*)$/);
         if(m2) {
             console.log("ai", m2);
-            addAI(m2[1], m2[2], m2[3], m2[4]);
+            addAI(m2[1], m2[2], m2[3], m2[4], "");
         }
 
         m2 = ln.match(/!!ai\s*\(([0-9]*)\|([^|]*)\)(.*)$/);
         if(m2) {
             console.log("ai", m2);
-            addAI(m2[1], m2[2], "", m2[3]);
+            addAI(m2[1], m2[2], "", m2[3], "");
         }
         m2 = ln.match(/!!ai\s*\(([0-9]*)\)(.*)$/);
         if(m2) {
             console.log("ai", m2);
-            addAI(m2[1], "", "", m2[2]);
+            addAI(m2[1], "", "", m2[2], "");
+        }
+        m2 = ln.match(/!!comment\s*\(([0-9]*)\)(.*)$/);
+        if(m2) {
+            console.log("comment", m2);
+            addAI(m2[1], "", "", "", m2[2]);
         }
     });
     ai_table.sort( (a, b) => {
@@ -166,7 +174,7 @@ function updateChildWindow() {
     }
 }
 
-function buildAiTableHtml() {
+function buildAiTableHtml(valid_states) {
     // first thing to do is to find the date of the section to generate the AI html.
     // This is done by scanning through the text to find !!aitable tag,
     // and find the last '!!date' tag.
@@ -174,6 +182,19 @@ function buildAiTableHtml() {
 
     if(editor == null) {
         return "";
+    }
+    
+    if(valid_states == null) {
+        // empty
+    }
+    else if(valid_states.includes("*")) {
+        valid_states = null;
+    }
+    else if(valid_states.length == 0) {
+        valid_states = __default_table_states__;
+    }
+    else if(valid_states.length == 1 && valid_states[0] == "") {
+        valid_states = __default_table_states__;
     }
 
     let p1 = editor.model.createPositionAt(editor.model.document.getRoot(), 0);
@@ -193,27 +214,39 @@ function buildAiTableHtml() {
 
     let aitable = rebuildAiTable(date);
     let ret = "<table>";
-    ret += "<tr><td>#</td><td>state</td><td>owner</td><td>description</td></tr>";
+    ret += "<tr><td>#</td><td>state</td><td>owner</td><td>description</td><td>comment</td></tr>";
     let prev_num = null;
     let last_state = "";
     let last_owner = "";
     let last_comment = "";
+    let last_description = "";
     function emit_cell_content() {
         if(last_state == "") last_state = "open";
-        ret += "<tr><td>" + prev_num + "</td><td>" + last_state + "</td><td>" + last_owner + "</td><td>" + last_comment + "</td></tr>";
+        // console.log(valid_states, last_state);
+        if(valid_states == null || valid_states.includes(last_state)) {
+            ret += "<tr><td>" + prev_num + "</td><td>" + last_state + "</td><td>" + last_owner + "</td><td>" + last_description + "</td><td>"+last_comment+"</td></tr>";
+        }
+    }
+    function update_ln(ln) {
+        let ln_date = ln["date"].split(" ")[0];
+        if(ln["state"] != "") {
+            last_state = ln["state"];
+        }
+        if(ln["owner"] != "") {
+            last_owner = ln["owner"];
+        }
+        if(ln["description"] != "") {
+            last_description = ln["description"];
+        }
+        if(ln["comment"] != "") {
+            last_comment += "(" +ln_date + ") " + ln["comment"] + "<br/>";
+        }
+
     }
     for(let ln of aitable) {
-        let ln_date = ln["date"].split(" ")[0];
         let ln_num = ln["number"];
         if(ln_num == prev_num) {
-            ln_num = "";
-            if(ln["state"] != "") {
-                last_state = ln["state"];
-            }
-            if(ln["owner"] != "") {
-                last_owner = ln["owner"];
-            }
-            last_comment += "(" +ln_date + ") " + ln["comment"] + "<br/>";
+            update_ln(ln);
         } else {
             if(prev_num != null) {
                 emit_cell_content(); 
@@ -221,13 +254,9 @@ function buildAiTableHtml() {
             prev_num = ln_num;
             last_state = "";
             last_owner = "";
-            if(ln["state"] != "") {
-                last_state = ln["state"];
-            }
-            if(ln["owner"] != "") {
-                last_owner = ln["owner"];
-            }
-            last_comment = "(" +ln_date + ") " + ln["comment"] + "<br/>";
+            last_comment = "";
+            last_description = "";
+            update_ln(ln);
         }
     }
     if(prev_num != null) {
@@ -363,7 +392,13 @@ function createEditor() {
                         },
                         {
                             from: /(!!aitable\s*)(##)$/,
-                            to: matches => [null, buildAiTableHtml()],
+                            to: matches => [null, buildAiTableHtml(["open"])],
+                        },
+                        {
+                            from: /(!!aitable\s*\()([^\)]*)(\)\s*)(##)$/,
+                            to: matches => [null, null, null, buildAiTableHtml(
+                                    matches[1].split("|").map(x=>x.trim())
+                            )],
                         },
                         {
                             from: /(!!snapshot\s*)(##)$/,
