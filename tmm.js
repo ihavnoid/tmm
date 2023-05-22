@@ -258,6 +258,54 @@ function forceTriggerUpdate(cb) {
     }
 }
 
+function buildSnapshotLink() {
+    editor.enableReadOnlyMode("#editor");
+    let xhr = new XMLHttpRequest();
+    xhr.open('GET', __serverBase__ + "/p/n.php");
+    xhr.onload = (resp) => {
+        if(xhr.status == 200) {
+            let t = xhr.response;
+            t = JSON.parse(t);
+            let tgt_rwkey = t["rwkey"];
+            let tgt_seq = t["seq"];
+            let tgt_data = editor.getData();
+            let title = document.getElementById("title").value;
+
+            xhr.open('POST', __serverBase__ + "/p/w.php");
+            let data = new FormData();
+            data.append('k', tgt_rwkey);
+            data.append('title', title);
+            data.append('sync', 1);
+            data.append('contents', tgt_data);
+            data.append('seq', tgt_seq + 100000000);
+            xhr.onload = function() {
+                if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+                    editor.disableReadOnlyMode("#editor");
+                    ret = "<a href=\"" + __serverBase__ + "/?k="+tgt_rwkey+"\">Link</a>";
+                    let pos = editor.model.document.selection.getFirstPosition();
+                    let viewFragment = editor.data.processor.toView(ret);
+                    let modelFragment = editor.data.toModel(viewFragment);
+                    editor.model.insertContent(modelFragment, pos);
+                } else {
+                    setTimeout(buildSnapshotLink, __retry_period__);
+                }
+            }
+            xhr.send(data);
+
+        } else {
+            // try again after 500ms
+            setTimeout(buildSnapshotLink, __retry_period__);
+        }
+    };
+    xhr.onerror = (resp) => {
+        // try again after 500ms
+        setTimeout(buildSnapshotLink, __retry_period__);
+    };
+    xhr.send();
+
+    return "";
+}
+
 function createEditor() {
     ClassicEditor
         .create( document.querySelector('#editor'), {
@@ -316,6 +364,10 @@ function createEditor() {
                         {
                             from: /(!!aitable\s*)(##)$/,
                             to: matches => [null, buildAiTableHtml()],
+                        },
+                        {
+                            from: /(!!snapshot\s*)(##)$/,
+                            to: matches => [null, buildSnapshotLink()],
                         }
                     ],
                 }
@@ -329,17 +381,19 @@ function createEditor() {
             if(seq >= 100000000) {
                 editor.enableReadOnlyMode("#editor");
                 document.getElementById("title").readOnly = true;
+                document.getElementById("change_to_read_only").style.visibility="hidden";
             } else {
                 editor.disableReadOnlyMode("#editor");
                 document.getElementById("title").readOnly = false;
+                document.getElementById("change_to_read_only").style.visibility="visible";
             }
+            addVisitedPages();
         } )
         .catch( error => { console.error(error); } );
 
     document.getElementById("title").addEventListener("input", (ev) => {
         forceTriggerUpdate();
     });
-    addVisitedPages();
 }
 
 function clonePage() {
@@ -359,6 +413,7 @@ function clonePage() {
             sessionStorage.setItem(__prefix__ + "documentTitle", JSON.stringify(rwkey));
             editor.disableReadOnlyMode("#editor");
             document.getElementById("title").readOnly = false;
+            document.getElementById("change_to_read_only").style.visibility="visible";
         } else {
             // try again after 500ms
             setTimeout(clonePage, __retry_period__);
