@@ -297,29 +297,34 @@ function buildSnapshotLink() {
             t = JSON.parse(t);
             let tgt_rwkey = t["rwkey"];
             let tgt_seq = t["seq"];
-            let tgt_data = editor.getData();
-            let title = document.getElementById("title").value;
 
-            xhr.open('POST', __serverBase__ + "/p/w.php");
-            let data = new FormData();
-            data.append('k', tgt_rwkey);
-            data.append('title', title);
-            data.append('sync', 1);
-            data.append('contents', tgt_data);
-            data.append('seq', tgt_seq + 100000000);
-            xhr.onload = function() {
-                if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
-                    editor.disableReadOnlyMode("#editor");
-                    ret = "<a href=\"" + __serverBase__ + "/?k="+tgt_rwkey+"\">Link</a>";
-                    let pos = editor.model.document.selection.getFirstPosition();
-                    let viewFragment = editor.data.processor.toView(ret);
-                    let modelFragment = editor.data.toModel(viewFragment);
-                    editor.model.insertContent(modelFragment, pos);
-                } else {
-                    setTimeout(buildSnapshotLink, __retry_period__);
+            let ret = "<a href=\"" + __serverBase__ + "/?k="+tgt_rwkey+"\">Link</a>";
+            let pos = editor.model.document.selection.getFirstPosition();
+            let viewFragment = editor.data.processor.toView(ret);
+            let modelFragment = editor.data.toModel(viewFragment);
+            editor.model.insertContent(modelFragment, pos);
+
+            function postData() {
+                let tgt_data = editor.getData();
+                let title = document.getElementById("title").value;
+
+                xhr.open('POST', __serverBase__ + "/p/w.php");
+                let data = new FormData();
+                data.append('k', tgt_rwkey);
+                data.append('title', title);
+                data.append('sync', 1);
+                data.append('contents', tgt_data);
+                data.append('seq', tgt_seq + 100000000);
+                xhr.onload = function() {
+                    if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+                        editor.disableReadOnlyMode("#editor");
+                    } else {
+                        setTimeout(postData, __retry_period__);
+                    }
                 }
+                xhr.send(data);
             }
-            xhr.send(data);
+            postData();
 
         } else {
             // try again after 500ms

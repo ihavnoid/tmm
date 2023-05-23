@@ -85,6 +85,7 @@
 autofilled.  If state is omitted, default will be 'open'.</td></tr>
 <tr><td><i>!!comment(num) some_comment</i></td><td>Add a comment to the action item number <i<num</i>.</td></tr>
 <tr><td><i>!!aitable(state1|state2|...) ##</i></td><td>Auto-insert an 'action item table' which summarizes the outstanding action items.  You can specify which states you want; if state list is empty, default is to only show 'open' state items.  If you want all states, put in <i>*</i> state.</td></tr>
+<tr><td><i>!!snapshot ##</i></td><td>Create a clone of the current page, and place a link to that page.  The clone will be read-only, so that we can keep it as a permanent copy of the meeting minute.</td></tr>
 </table>
 </div>
 <div id="maineditor">
