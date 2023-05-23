@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <script>
+        msgpane = null;
+        function loadme() {
+            let te = document.getElementById("msgpane");
+            msgpane = document.getElementById("msgpane");
+            window.opener.callbackFromPane(window);
+            let xf = () => {
+                setTimeout(() => {
+                    if(window.opener) {
+                        xf();
+                    } else {
+                        window.close();
+                    }
+                }, 500);
+            }
+            xf();
+        }
+    </script>
+</head>
+<body onload="loadme()">
+    <div id="msgpane"></div>
+</body>
