@@ -1,7 +1,17 @@
 __prefix__ = "tmm_edit_";
 __retry_period__ = 500;
 __default_table_states__ = ["open"];
-
+__html_to_text_opt__ = {
+    wordwrap: 99999999,
+    selectors: [
+        {
+            selector: 'a',
+            options: {
+                hideLinkHrefIfSameAsText: true
+            }
+        }
+    ]
+};
 
 let editor = null;
 let last_timestamp = 0;
@@ -77,18 +87,7 @@ function findLastDate() {
     if(editor == null) {
         return "";
     }
-    let html_to_text_opt = {
-        wordwrap: 99999999,
-        selectors: [
-            {
-                selector: 'a',
-                options: {
-                    hideLinkHrefIfSameAsText: true
-                }
-            }
-        ]
-    };
-    let d = html_to_text.convert(editor.getData(), html_to_text_opt);
+    let d = html_to_text.convert(editor.getData(), __html_to_text_opt__);
     let lines = d.split('\n');
     let date = "";
     let lncnt = 0;
@@ -109,7 +108,8 @@ function rebuildAiTable(currentDateString) {
     if(editor == null) {
         return [];
     }
-    let d = html_to_text.convert(editor.getData(), {wordwrap:9999999});
+
+    let d = html_to_text.convert(editor.getData(), __html_to_text_opt__);
     let ai_table = [];
     let lines = d.split('\n');
     let date = timeFormat();
