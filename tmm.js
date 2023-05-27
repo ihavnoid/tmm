@@ -277,18 +277,10 @@ function buildAiTableHtml(valid_states) {
 }
 
 function forceTriggerUpdate(cb) {
-    // the only purpose of this setData() is to trigger a autosave when title changed.
-    let d = editor.getData();
-    let d2 = d.replaceAll("<!-- Title -->", "");
-    if(d == d2) {
-        d += "<!-- Title -->";
-    } else {
-        d = d2;
-    }
-    editor.setData(d);
     if(cb) {
         updateCallback.push(cb);
     }
+    editor.plugins.get('Autosave').save().then(() => {});
 }
 
 function buildSnapshotLink() {
@@ -345,6 +337,7 @@ function buildSnapshotLink() {
 }
 
 function createEditor() {
+    let updating = false;
     ClassicEditor
         .create( document.querySelector('#editor'), {
             simpleUpload: {
@@ -436,7 +429,13 @@ function createEditor() {
         .catch( error => { console.error(error); } );
 
     document.getElementById("title").addEventListener("input", (ev) => {
-        forceTriggerUpdate();
+        if( updating ) return false;
+        
+        updating = true;
+        setTimeout( () => {
+            forceTriggerUpdate();
+            updating = false;
+        }, 2000);
     });
 }
 
