@@ -77,7 +77,18 @@ function findLastDate() {
     if(editor == null) {
         return "";
     }
-    let d = html_to_text.convert(editor.getData(), {wordwrap:9999999});
+    let html_to_text_opt = {
+        wordwrap: 99999999,
+        selectors: [
+            {
+                selector: 'a',
+                options: {
+                    hideLinkHrefIfSameAsText: true
+                }
+            }
+        ]
+    };
+    let d = html_to_text.convert(editor.getData(), html_to_text_opt);
     let lines = d.split('\n');
     let date = "";
     let lncnt = 0;
@@ -213,7 +224,7 @@ function buildAiTableHtml(valid_states) {
     console.log(date);
 
     let aitable = rebuildAiTable(date);
-    let ret = "<figure class='table' style='float:left;'><table style='border: 1px solid #000000;'>";
+    let ret = "<figure class='table'><table style='border: 1px solid #000000;'>";
     let th_style = "style='background-color:#c0c0c0;border:1px solid #000000;'"
     let td_style = "style='border:1px solid #000000;'"
     let generate_th = s => "<td "+th_style+"><strong>"+s+"</strong></td>";
