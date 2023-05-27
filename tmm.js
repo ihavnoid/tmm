@@ -254,7 +254,11 @@ function buildAiTableHtml(valid_states) {
             last_description = ln["description"];
         }
         if(ln["comment"] != "") {
-            last_comment += "(" +ln_date + ") " + ln["comment"] + "<br/>";
+            if(last_comment == "") {
+                last_comment += "(" +ln_date + ") " + ln["comment"];
+            } else {
+                last_comment += "<br/>(" +ln_date + ") " + ln["comment"];
+            }
         }
 
     }
