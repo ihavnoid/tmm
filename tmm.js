@@ -213,8 +213,11 @@ function buildAiTableHtml(valid_states) {
     console.log(date);
 
     let aitable = rebuildAiTable(date);
-    let ret = "<table>";
-    ret += "<tr><td>#</td><td>state</td><td>owner</td><td>description</td><td>comment</td></tr>";
+    let ret = "<figure class='table' style='float:left;'><table style='border: 1px solid #000000;'>";
+    let th_style = "style='background-color:#c0c0c0;border:1px solid #000000;'"
+    let td_style = "style='border:1px solid #000000;'"
+    let generate_th = s => "<td "+th_style+"><strong>"+s+"</strong></td>";
+    ret += "<tr>"+generate_th("#") + generate_th("state") + generate_th("owner") + generate_th("description") + generate_th("comment") + "</tr>";
     let prev_num = null;
     let last_state = "";
     let last_owner = "";
@@ -224,7 +227,8 @@ function buildAiTableHtml(valid_states) {
         if(last_state == "") last_state = "open";
         // console.log(valid_states, last_state);
         if(valid_states == null || valid_states.includes(last_state)) {
-            ret += "<tr><td>" + prev_num + "</td><td>" + last_state + "</td><td>" + last_owner + "</td><td>" + last_description + "</td><td>"+last_comment+"</td></tr>";
+        let generate_td = s => "<td "+td_style+">"+s+"</td>";
+            ret += "<tr>" +generate_td(prev_num) +generate_td(last_state) +generate_td(last_owner) +generate_td(last_description) +generate_td(last_comment) +"</tr>";
         }
     }
     function update_ln(ln) {
@@ -262,7 +266,7 @@ function buildAiTableHtml(valid_states) {
     if(prev_num != null) {
         emit_cell_content(); 
     }
-    ret += "</table>";
+    ret += "</table><figure>";
 
     let pos = editor.model.document.selection.getFirstPosition();
     let viewFragment = editor.data.processor.toView(ret);
