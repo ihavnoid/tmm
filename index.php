@@ -54,7 +54,6 @@
         top: 50px;
         left: 50px;
         width: 800px;
-        height: 400px;
         background: white;
         padding: 10px;
         border: 1px solid #000000;
@@ -62,6 +61,12 @@
     .helptable {
         margin: 5px;
         border: 1px solid #303030;
+    }
+    .shade {
+        margin: 5px;
+        padding: 10px;
+        border: 0px solid #ffffff;
+        background: #efefef;
     }
 </style>
 <script>
@@ -87,6 +92,26 @@ autofilled.  If state is omitted, default will be 'open'.</td></tr>
 <tr><td><i>!!aitable(state1|state2|...) ##</i></td><td>Auto-insert an 'action item table' which summarizes the outstanding action items.  You can specify which states you want; if state list is empty, default is to only show 'open' state items.  If you want all states, put in <i>*</i> state.</td></tr>
 <tr><td><i>!!snapshot ##</i></td><td>Create a clone of the current page, and place a link to that page.  The clone will be read-only, so that we can keep it as a permanent copy of the meeting minute.</td></tr>
 </table>
+<p><b>Example</b></p>
+<div class="shade">
+<p>!!date ##</p>
+<p>1st meeting</p>
+<p>!!ai(#|open|John Doe) Something <i>(the # will be autofilled into 1)</i></p>
+<p>!!comment(1) Write something</p>
+<p>!!aitable ## <i>(This auto-generates the table, only open items)</i></p>
+<figure class="table"><table style="border:1px solid #000000;"><tbody><tr><td style="background-color:#c0c0c0;border:1px solid #000000;"><strong>#</strong></td><td style="background-color:#c0c0c0;border:1px solid #000000;"><strong>state</strong></td><td style="background-color:#c0c0c0;border:1px solid #000000;"><strong>owner</strong></td><td style="background-color:#c0c0c0;border:1px solid #000000;"><strong>description</strong></td><td style="background-color:#c0c0c0;border:1px solid #000000;"><strong>comment</strong></td></tr><tr><td style="border:1px solid #000000;">1</td><td style="border:1px solid #000000;">open</td><td style="border:1px solid #000000;">John Doe</td><td style="border:1px solid #000000;">Something</td><td style="border:1px solid #000000;">(2023/05/28) Write something</td></tr></tbody></table></figure><div class="page-break" style="page-break-after:always;"><span style="display:none;">&nbsp;</span></div>
+<hr/>
+<p>!!date 2023/05/30</p>
+<p>2nd meeting</p>
+<p>!!ai(1|close)</p>
+<p>!!comment(1) finished doing required changes</p>
+<p>!!snapshot ## <i>(This will create a snapshot of the current document)</i></p>
+<p>!!aitable(*) ## <i>(This auto-generates the table, all items)</i></p>
+<figure class="table"><table style="border:1px solid #000000;"><tbody><tr><td style="background-color:#c0c0c0;border:1px solid #000000;"><strong>#</strong></td><td style="background-color:#c0c0c0;border:1px solid #000000;"><strong>state</strong></td><td style="background-color:#c0c0c0;border:1px solid #000000;"><strong>owner</strong></td><td style="background-color:#c0c0c0;border:1px solid #000000;"><strong>description</strong></td><td style="background-color:#c0c0c0;border:1px solid #000000;"><strong>comment</strong></td></tr><tr><td style="border:1px solid #000000;">1</td><td style="border:1px solid #000000;">close</td><td style="border:1px solid #000000;">John Doe</td><td style="border:1px solid #000000;">Something</td><td style="border:1px solid #000000;">(2023/05/28) Write something<br>(2023/05/30) finished doing required changes</td></tr></tbody></table></figure>
+
+</div>
+
+
 </div>
 <div id="maineditor">
 <div>
