@@ -1,0 +1,43 @@
+#title {
+    font-size: 24px;
+    margin: 12px;
+}
+#newdoc {
+    margin: 10px;
+}
+#clonepage {
+    margin: 10px;
+}
+#visited {
+    margin: 10px;
+}
+#rwkey {
+    margin: 10px;
+}
+#helpwindow {
+    z-index: 100;
+    visibility: hidden;
+    position: absolute;
+    top: 50px;
+    left: 50px;
+    width: 800px;
+    background: white;
+    padding: 10px;
+    border: 1px solid #000000;
+}
+.helptable {
+    margin: 5px;
+    border: 1px solid #303030;
+}
+.shade {
+    margin: 5px;
+    padding: 10px;
+    border: 0px solid #ffffff;
+    background: #efefef;
+    font-size: 10pt;
+}
+.comment {
+    font-size: 8pt;
+    color: #808080;
+}
+
