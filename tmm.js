@@ -3,12 +3,25 @@ __retry_period__ = 500;
 __default_table_states__ = ["open"];
 __html_to_text_opt__ = {
     wordwrap: 99999999,
+    formatters: {
+        bypassFormatter: function(elem, walk, builder, formatOptions) {
+            builder.openBlock({leadingLineBreaks:0});
+            let h = " <a ";
+            for(let k in elem.attribs) {
+                let v = elem.attribs[k];
+                h += k + "=\"" + v + "\" ";
+            }
+            h += ">";
+            builder.addLiteral(h);
+            walk(elem.children, builder);
+            builder.addInline("</a>");
+            builder.closeBlock({trailingLineBreaks:0});
+        }
+    },
     selectors: [
         {
             selector: 'a',
-            options: {
-                hideLinkHrefIfSameAsText: true
-            }
+            format: 'bypassFormatter'
         }
     ]
 };

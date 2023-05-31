@@ -5,7 +5,7 @@
 
 <!DOCTYPE HTML>
 <html>
-<title>text2mindmap - pages visited</title>
+<title>text2meetingminutes - pages visited</title>
 <style>
     table {
         border-collapse: collapse;
