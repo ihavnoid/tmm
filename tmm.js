@@ -192,9 +192,66 @@ function getNextAINum() {
 }
 
 function updateChildWindow() {
-    let d = html_to_text.convert(editor.getData(), {wordwrap:9999999});
+    function cleanupTags(t) {
+        const conversions = [
+            {
+                from: /(!!date\s+)([^<]*)/g,
+                to: (matches, p1, p2) => "Date: " + p2,
+            },
+            {
+                from: /(!!aitable\s*\()([^\)]*)(\)\s*)(#*)/g,
+                to: (matches) => "Action items:",
+            },
+            {
+                from: /(!!aitable\s*)(#*)/g,
+                to: (matches) => "Action items:",
+            },
+            {
+                from: /(!!snapshot\s*)(#*)(<a.*<\/a>)/g,
+                to: (matches, p1, p2, p3) => "Meeting minute snapshot : " + p3,
+            },
+            {
+                from: /!!ai\s*\(([0-9]*)\)/g,
+                to: (matches, p1, p2) => {
+                    let ret = "Action Item ("
+                    ret += "#" + p1 + ") : ";
+                    return ret;
+                },
+            },
+            {
+                from: /!!ai\s*\(([0-9]*)\|([^\)|]*)\)/g,
+                to: (matches, p1, p2, p3) => {
+                    let ret = "Action Item ("
+                    ret += "#" + p1 + ", ";
+                    ret += p2 + ") : ";
+                    return ret;
+                },
+            },
+            {
+                from : /!!ai\s*\(([0-9]*)\|([^\)|]*)\|([^\)]*)\)/g,
+                to: (matches, p1, p2, p3, p4) => {
+                    let ret = "Action Item ("
+                    ret += "#" + p1 + ", ";
+                    ret += p2 + ", ";
+                    ret += p3 + ") : ";
+                    return ret;
+                },
+            },
+            {
+                from: /!!comment\s*\(([0-9]*)\)/g,
+                to: (matches, p1, p2) => {
+                    return "Comment (#"+p1+") : ";
+                }
+            },
+        ];
+        conversions.forEach(x => {
+            t = t.replaceAll(x["from"], x["to"]);
+        });
+        return t;
+    }
+    let d = editor.getData();
     if(getWindow() != window) {
-        getWindow().msgpane.innerHTML = "<pre>" + d + "</pre>";
+        getWindow().msgpane.innerHTML = cleanupTags(d);
     }
 }
 
