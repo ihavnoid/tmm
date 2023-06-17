@@ -134,7 +134,7 @@ function rebuildAiTable(currentDateString) {
             ai_table.push({
                 ln : lncnt,
                 date : date.trim(),
-                number : number.trim(),
+                number : parseInt(number.trim()),
                 state : state.trim(),
                 owner : owner.trim(),
                 description : description.trim(),
@@ -151,13 +151,13 @@ function rebuildAiTable(currentDateString) {
             date = m[1];
         }
 
-        let m2 = ln.match(/!!ai\s*\(([0-9]*)\|([^|]*)\|([^|]*)\)(.*)$/);
+        let m2 = ln.match(/!!ai\s*\(([0-9]*)\|([^|\)]*)\|([^\)|]*)\)(.*)$/);
         if(m2) {
             console.log("ai", m2);
             addAI(m2[1], m2[2], m2[3], m2[4], "");
         }
 
-        m2 = ln.match(/!!ai\s*\(([0-9]*)\|([^|]*)\)(.*)$/);
+        m2 = ln.match(/!!ai\s*\(([0-9]*)\|([^|\)]*)\)(.*)$/);
         if(m2) {
             console.log("ai", m2);
             addAI(m2[1], m2[2], "", m2[3], "");
@@ -188,7 +188,7 @@ function rebuildAiTable(currentDateString) {
 function getNextAINum() {
     let ai_table = rebuildAiTable(null);
     if(ai_table.length == 0) return 1;
-    return 1 + Math.max(...(ai_table.map(x => parseInt(x["number"]))));
+    return 1 + Math.max(...(ai_table.map(x => x["number"])));
 }
 
 function updateChildWindow() {
@@ -281,6 +281,7 @@ function buildAiTableHtml(valid_states) {
     let p1 = editor.model.createPositionAt(editor.model.document.getRoot(), 0);
     let p2 = editor.model.document.selection.getFirstPosition();
     let r = editor.model.createRange(p1, p2);
+    let date = timeFormat();
 
     for(let x of r.getItems()) {
         if(x["textNode"]) {
@@ -299,7 +300,7 @@ function buildAiTableHtml(valid_states) {
     let td_style = "style='border:1px solid #000000;'"
     let generate_th = s => "<td "+th_style+"><strong>"+s+"</strong></td>";
     ret += "<tr>"+generate_th("#") + generate_th("state") + generate_th("owner") + generate_th("description") + generate_th("comment") + "</tr>";
-    let prev_num = null;
+    let prev_num = -1;
     let last_state = "";
     let last_owner = "";
     let last_comment = "";
@@ -337,7 +338,7 @@ function buildAiTableHtml(valid_states) {
         if(ln_num == prev_num) {
             update_ln(ln);
         } else {
-            if(prev_num != null) {
+            if(prev_num >= 0) {
                 emit_cell_content(); 
             }
             prev_num = ln_num;
@@ -348,7 +349,7 @@ function buildAiTableHtml(valid_states) {
             update_ln(ln);
         }
     }
-    if(prev_num != null) {
+    if(prev_num >= 0) {
         emit_cell_content(); 
     }
     ret += "</table><figure>";
@@ -598,7 +599,7 @@ function onload() {
                 let t = xhr.response;
                 t = JSON.parse(t);
                 console.log("loadFromRW", "resp", t);
-                if(t["contents"]) {
+                if(t["contents"] != undefined) {
                     rwkey = t["rwkey"];
                     let title = t["title"];
                     seq = 0 + t["seq"];
