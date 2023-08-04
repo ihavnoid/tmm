@@ -2,7 +2,7 @@ __prefix__ = "tmm_edit_";
 __retry_period__ = 500;
 __default_table_states__ = ["open"];
 __html_to_text_opt__ = {
-    wordwrap: 99999999,
+    wordwrap: 32768, // setting this too long will cause terrible memory leak
     formatters: {
         bypassFormatter: function(elem, walk, builder, formatOptions) {
             builder.openBlock({leadingLineBreaks:0});
