@@ -251,7 +251,7 @@ function updateChildWindow() {
     }
     let d = editor.getData();
     if(getWindow() != window) {
-        getWindow().msgpane.innerHTML = cleanupTags(d);
+        getWindow().msgpaneUpdate(cleanupTags(d));
     }
 }
 

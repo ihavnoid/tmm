@@ -3,10 +3,32 @@
 <head>
     <meta charset="utf-8"/>
     <script>
-        msgpane = null;
+        _msgpane = null;
+        msgpaneUpdate = (d) => {
+            if(_msgpane != null) {
+                _msgpane.innerHTML = d;
+
+                let imgs = _msgpane.getElementsByTagName('img'); 
+                for(let i=0; i<imgs.length; i++) {
+                    let img = imgs[i];
+                    try {
+                        fetch(img.src).then( (res) => res.blob())
+                            .then( (blob) => {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                    img.src = reader.result;
+                                };
+                                reader.readAsDataURL(blob);
+                            });
+                    } catch (error) {
+                        // catch things like CORS error
+                        console.log(error);
+                    }
+                }
+            }
+        };
         function loadme() {
-            let te = document.getElementById("msgpane");
-            msgpane = document.getElementById("msgpane");
+            _msgpane = document.getElementById("msgpane");
             window.opener.callbackFromPane(window);
             let xf = () => {
                 setTimeout(() => {
